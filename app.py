@@ -5,67 +5,55 @@ app = Flask(__name__)
 
 MODEL_API = "https://hub.opengradient.ai/api/models"
 
+
 def get_models():
     try:
         r = requests.get(MODEL_API, timeout=10)
         data = r.json()
-        models = data.get("models", [])
-        return models
+        return data.get("models", [])
     except:
         return []
 
-def search_models(query, models):
-    results = []
-    q = query.lower()
 
-    for m in models:
-        name = m.get("name","").lower()
-        desc = m.get("description","").lower()
+def analyze_models(models):
 
-        if q in name or q in desc:
-            results.append(m)
+    trending = sorted(models, key=lambda x: x.get("downloads", 0), reverse=True)[:6]
+    newest = sorted(models, key=lambda x: x.get("created_at", ""), reverse=True)[:6]
 
-    return results[:5]
+    return trending, newest
 
 
-@app.route("/", methods=["GET","POST"])
+@app.route("/", methods=["GET", "POST"])
 def home():
 
     models = get_models()
+    trending, newest = analyze_models(models)
 
-    trending = sorted(models, key=lambda x: x.get("downloads",0), reverse=True)[:6]
-    newest = sorted(models, key=lambda x: x.get("created_at",""), reverse=True)[:6]
-
-    answer_html = ""
+    insight = ""
 
     if request.method == "POST":
+        question = request.form.get("question", "").lower()
 
-        query = request.form.get("query","")
-        results = search_models(query, models)
+        if "trending" in question:
+            insight = "<b>Trending models right now:</b><br>"
+            for m in trending[:3]:
+                insight += f"• {m.get('name','Unknown')}<br>"
 
-        if results:
-            answer_html += "<h3>Results:</h3>"
-            for r in results:
-                name = r.get("name","Unknown")
-                desc = r.get("description","No description")
+        elif "new" in question:
+            insight = "<b>Newest models:</b><br>"
+            for m in newest[:3]:
+                insight += f"• {m.get('name','Unknown')}<br>"
 
-                answer_html += f"""
-                <div class='assistant-card'>
-                <b>{name}</b><br>
-                {desc}
-                </div>
-                """
         else:
-            answer_html = "<p>No models found.</p>"
-
+            insight = "Try asking: <i>trending models</i> or <i>new models</i>"
 
     def render_cards(data):
-        html=""
+        html = ""
         for m in data:
-            name = m.get("name","Unknown")
-            desc = m.get("description","No description")
+            name = m.get("name", "Unknown Model")
+            desc = m.get("description", "No description")
 
-            html+=f"""
+            html += f"""
             <div class="card">
                 <div class="model-name">{name}</div>
                 <div class="model-desc">{desc}</div>
@@ -73,32 +61,31 @@ def home():
             """
         return html
 
-
     html = f"""
 <!DOCTYPE html>
 <html>
 <head>
 
-<title>OpenGradient Radar</title>
+<title>Model Insights AI</title>
 
 <style>
 
 body {{
 margin:0;
 font-family:Arial;
-background:#070b14;
+background:#05070d;
 color:white;
 }}
 
 .header {{
-padding:40px;
 text-align:center;
+padding:50px;
 }}
 
 .title {{
-font-size:42px;
+font-size:48px;
 font-weight:bold;
-background:linear-gradient(90deg,#00E5FF,#7B61FF);
+background:linear-gradient(90deg,#00f2ff,#8a5cff);
 -webkit-background-clip:text;
 -webkit-text-fill-color:transparent;
 }}
@@ -114,32 +101,32 @@ padding:20px;
 }}
 
 .section {{
-margin-top:40px;
+margin-top:50px;
 }}
 
 .section-title {{
-color:#00E5FF;
-margin-bottom:20px;
 font-size:22px;
+color:#00f2ff;
+margin-bottom:20px;
 }}
 
 .grid {{
 display:grid;
-grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
 gap:20px;
 }}
 
 .card {{
-background:#111827;
-padding:20px;
+background:#0f1424;
+border:1px solid #1c233a;
 border-radius:12px;
-border:1px solid #1f2937;
-transition:0.2s;
+padding:20px;
+transition:0.25s;
 }}
 
 .card:hover {{
-border:1px solid #00E5FF;
-transform:translateY(-4px);
+transform:translateY(-5px);
+border:1px solid #00f2ff;
 }}
 
 .model-name {{
@@ -149,15 +136,15 @@ margin-bottom:6px;
 }}
 
 .model-desc {{
-opacity:0.7;
 font-size:14px;
+opacity:0.7;
 }}
 
-.assistant-box {{
-background:#111827;
-padding:25px;
+.ai-box {{
+background:#0f1424;
 border-radius:12px;
-border:1px solid #1f2937;
+padding:25px;
+border:1px solid #1c233a;
 }}
 
 input {{
@@ -165,30 +152,27 @@ width:70%;
 padding:12px;
 border-radius:8px;
 border:none;
-background:#1f2937;
+background:#1c233a;
 color:white;
 }}
 
 button {{
 padding:12px 20px;
+margin-left:10px;
+background:#00f2ff;
 border:none;
-background:#00E5FF;
-color:black;
 border-radius:8px;
 cursor:pointer;
-margin-left:10px;
 }}
 
 button:hover {{
-background:#7B61FF;
+background:#8a5cff;
 color:white;
 }}
 
-.assistant-card {{
-background:#1f2937;
-padding:15px;
-border-radius:8px;
-margin-top:10px;
+.insight {{
+margin-top:15px;
+opacity:0.9;
 }}
 
 .footer {{
@@ -205,27 +189,30 @@ opacity:0.4;
 
 <div class="header">
 
-<div class="title">OpenGradient Radar</div>
-<div class="subtitle">Explore and search models from the OpenGradient Model Hub</div>
+<div class="title">Model Insights AI</div>
+<div class="subtitle">Analytics dashboard for the OpenGradient Model Hub</div>
 
 </div>
+
 
 <div class="container">
 
 <div class="section">
 
-<div class="section-title">🤖 AI Model Assistant</div>
+<div class="section-title">🤖 AI Model Analyst</div>
 
-<div class="assistant-box">
+<div class="ai-box">
 
 <form method="POST">
 
-<input name="query" placeholder="Ask something like: crypto prediction model">
-<button>Search</button>
+<input name="question" placeholder="Ask: trending models or new models">
+<button>Analyze</button>
 
 </form>
 
-{answer_html}
+<div class="insight">
+{insight}
+</div>
 
 </div>
 
