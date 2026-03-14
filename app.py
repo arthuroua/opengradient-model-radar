@@ -1,150 +1,198 @@
 from flask import Flask
-import requests
 import random
 
 app = Flask(__name__)
 
-MODEL_API = "https://hub.opengradient.ai/api/models"
+models = [
+"ETH Volatility Predictor",
+"Crypto Sentiment AI",
+"Market Regime Detector",
+"BTC Price Predictor",
+"DeFi Risk Analyzer",
+"AI Trading Agent",
+"Portfolio Optimizer",
+"Onchain Data Analyzer",
+"Liquidity Predictor",
+"Gas Fee Estimator"
+]
 
-
-def get_models():
-    try:
-        r = requests.get(MODEL_API, timeout=10)
-
-        if r.status_code != 200:
-            return []
-
-        data = r.json()
-
-        if isinstance(data, dict):
-            return data.get("models", [])
-
-        return []
-
-    except Exception as e:
-        print("API error:", e)
-        return []
-
-
-def trending_models(models):
-
-    if not models:
-        return []
-
-    return sorted(models, key=lambda x: x.get("downloads", 0), reverse=True)[:8]
-
+signals = [
+"Bullish",
+"Bearish",
+"High Volatility",
+"Positive Sentiment",
+"Risk Increase"
+]
 
 @app.route("/")
 def home():
 
-    models = get_models()
-    trending = trending_models(models)
+    cards=""
 
-    cards = ""
+    for m in models:
 
-    if not trending:
-        cards = "<p>No models available right now.</p>"
+        confidence=random.randint(60,95)
+        signal=random.choice(signals)
 
-    else:
-        for m in trending:
+        size=confidence*2
 
-            name = m.get("name", "Unknown")
-            desc = m.get("description", "No description")
+        color="#16c784" if confidence>80 else "#f3ba2f" if confidence>70 else "#ea3943"
 
-            score = random.randint(70, 98)
+        cards+=f"""
 
-            cards += f"""
-            <div class="card">
-            <div class="model-name">{name}</div>
-            <div class="model-desc">{desc}</div>
-            <div class="score">Trending Score: {score}</div>
-            </div>
-            """
+        <div class="tile" style="width:{size}px;height:{size}px;background:{color};">
 
-    html = f"""
+        <div class="tile-title">{m}</div>
 
-    <html>
+        <div class="tile-signal">{signal}</div>
 
-    <head>
+        <div class="tile-score">{confidence}%</div>
 
-    <title>OpenGradient Insights</title>
+        </div>
 
-    <style>
+        """
 
-    body{{
-    background:#05070d;
-    color:white;
-    font-family:Arial;
-    margin:0;
-    }}
+    html=f"""
 
-    .header{{
-    text-align:center;
-    padding:50px;
-    }}
+<html>
 
-    .title{{
-    font-size:42px;
-    font-weight:bold;
-    background:linear-gradient(90deg,#00f2ff,#8a5cff);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-    }}
+<head>
 
-    .grid{{
-    max-width:1000px;
-    margin:auto;
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
-    gap:20px;
-    }}
+<title>OpenGradient AI Heatmap</title>
 
-    .card{{
-    background:#0f1424;
-    border-radius:12px;
-    padding:20px;
-    border:1px solid #1c233a;
-    }}
+<style>
 
-    .model-name{{
-    font-weight:bold;
-    font-size:18px;
-    }}
+body{{
+background:#05070d;
+color:white;
+font-family:Arial;
+margin:0;
+}}
 
-    .model-desc{{
-    font-size:14px;
-    opacity:0.7;
-    margin:8px 0;
-    }}
+.header{{
+text-align:center;
+padding:40px;
+}}
 
-    .score{{
-    margin-top:10px;
-    color:#00f2ff;
-    }}
+.title{{
+font-size:44px;
+font-weight:bold;
+background:linear-gradient(90deg,#00f2ff,#8a5cff);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}}
 
-    </style>
+.subtitle{{
+opacity:0.6;
+}}
 
-    </head>
+.container{{
+max-width:1200px;
+margin:auto;
+padding:20px;
+}}
 
-    <body>
+.heatmap{{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+justify-content:center;
+}}
 
-    <div class="header">
+.tile{{
+border-radius:10px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+font-size:12px;
+padding:10px;
+transition:0.2s;
+cursor:pointer;
+}}
 
-    <div class="title">OpenGradient Insights</div>
+.tile:hover{{
+transform:scale(1.1);
+}}
 
-    </div>
+.tile-title{{
+font-weight:bold;
+margin-bottom:4px;
+}}
 
-    <div class="grid">
+.tile-signal{{
+opacity:0.8;
+}}
 
-    {cards}
+.tile-score{{
+font-size:16px;
+font-weight:bold;
+margin-top:4px;
+}}
 
-    </div>
+.legend{{
+display:flex;
+justify-content:center;
+gap:20px;
+margin-top:20px;
+}}
 
-    </body>
+.legend div{{
+display:flex;
+align-items:center;
+gap:6px;
+}}
 
-    </html>
+.box{{
+width:14px;
+height:14px;
+border-radius:3px;
+}}
 
-    """
+.green{{background:#16c784}}
+.yellow{{background:#f3ba2f}}
+.red{{background:#ea3943}}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+
+<div class="title">OpenGradient AI Heatmap</div>
+
+<div class="subtitle">AI Model Market Signals</div>
+
+</div>
+
+<div class="container">
+
+<div class="heatmap">
+
+{cards}
+
+</div>
+
+<div class="legend">
+
+<div><div class="box green"></div> Strong</div>
+
+<div><div class="box yellow"></div> Neutral</div>
+
+<div><div class="box red"></div> Weak</div>
+
+</div>
+
+</div>
+
+</body>
+
+</html>
+
+"""
 
     return html
 
