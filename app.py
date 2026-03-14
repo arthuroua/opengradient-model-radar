@@ -36,11 +36,16 @@ def home():
 
         size=confidence*2
 
-        color="#16c784" if confidence>80 else "#f3ba2f" if confidence>70 else "#ea3943"
+        if confidence > 80:
+            color="#16c784"
+        elif confidence > 70:
+            color="#f3ba2f"
+        else:
+            color="#ea3943"
 
         cards+=f"""
 
-        <div class="tile" style="width:{size}px;height:{size}px;background:{color};">
+        <div class="tile" style="width:{size}px;height:{size}px;background:{color};" title="AI Model Signal">
 
         <div class="tile-title">{m}</div>
 
@@ -110,6 +115,7 @@ font-size:12px;
 padding:10px;
 transition:0.2s;
 cursor:pointer;
+animation:fade 0.6s ease;
 }}
 
 .tile:hover{{
@@ -129,6 +135,11 @@ opacity:0.8;
 font-size:16px;
 font-weight:bold;
 margin-top:4px;
+}}
+
+@keyframes fade{{
+from{{opacity:0;transform:scale(0.9)}}
+to{{opacity:1;transform:scale(1)}}
 }}
 
 .legend{{
@@ -154,6 +165,26 @@ border-radius:3px;
 .yellow{{background:#f3ba2f}}
 .red{{background:#ea3943}}
 
+.activity{{
+max-width:800px;
+margin:40px auto;
+background:#0f1424;
+padding:20px;
+border-radius:10px;
+}}
+
+#feed{{
+margin-top:10px;
+font-size:14px;
+line-height:1.8;
+}}
+
+.event{{
+opacity:0.9;
+border-bottom:1px solid #1c233a;
+padding:6px 0;
+}}
+
 </style>
 
 </head>
@@ -164,7 +195,7 @@ border-radius:3px;
 
 <div class="title">OpenGradient AI Heatmap</div>
 
-<div class="subtitle">AI Model Market Signals</div>
+<div class="subtitle">AI Model Market Signals for OpenGradient</div>
 
 </div>
 
@@ -179,14 +210,73 @@ border-radius:3px;
 <div class="legend">
 
 <div><div class="box green"></div> Strong</div>
-
 <div><div class="box yellow"></div> Neutral</div>
-
 <div><div class="box red"></div> Weak</div>
 
 </div>
 
 </div>
+
+
+<div class="activity">
+
+<h2>⚡ Live Model Activity</h2>
+
+<div id="feed"></div>
+
+</div>
+
+
+<script>
+
+const models=[
+"ETH Volatility Predictor",
+"Crypto Sentiment AI",
+"Market Regime Detector",
+"BTC Price Predictor",
+"DeFi Risk Analyzer",
+"AI Trading Agent",
+"Portfolio Optimizer"
+]
+
+const signals=[
+"HIGH VOLATILITY",
+"BULLISH TREND",
+"BEARISH SIGNAL",
+"POSITIVE SENTIMENT",
+"RISK INCREASE"
+]
+
+function addEvent(){{
+
+let model=models[Math.floor(Math.random()*models.length)]
+let signal=signals[Math.floor(Math.random()*signals.length)]
+
+let time=new Date().toLocaleTimeString()
+
+let event=`[${{time}}] ${{model}} generated ${{signal}}`
+
+let feed=document.getElementById("feed")
+
+let div=document.createElement("div")
+
+div.className="event"
+
+div.innerText=event
+
+feed.prepend(div)
+
+if(feed.children.length>10){{
+
+feed.removeChild(feed.lastChild)
+
+}}
+
+}}
+
+setInterval(addEvent,3000)
+
+</script>
 
 </body>
 
